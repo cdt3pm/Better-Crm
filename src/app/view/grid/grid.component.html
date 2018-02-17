@@ -1,0 +1,16 @@
+<table class="grid">
+	<tr>
+		<th *ngFor="let column of columns">{{column.displayName}}"</th>
+	</tr>
+	<tbody *ngIf="records | async as rs">
+		<tr *ngFor="let record of rs">
+			<td *ngFor="let column of columns" *ngIf="record.attributes[column.name]">record.attributes[column.name]</td>
+		</tr>
+	</tbody>
+</table>
+
+<div class="app-grid-pagination">
+	<button (click)="previousPage()">&lt;</button>
+	<input type="number" [(ngModel)]="currentPage" />
+	<button (click)="nextPage()">&gt;</button>
+</div>

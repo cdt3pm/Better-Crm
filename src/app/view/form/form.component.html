@@ -1,0 +1,7 @@
+<form *ngIf="record | async as r">
+	<div *ngFor="let attribute in r.attributes">
+		<label for="{{attribute}}">{{attribute}}</label>
+		<input id="attr" [value]="r.getValue(attribute)" (change)="fieldChanged(r, attribute, $event)" />
+	</div>
+	<input type="submit" (click)="submit(r)" />
+</form>
