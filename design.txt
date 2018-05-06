@@ -1,0 +1,39 @@
+services
+	Mongo
+		Facade over mongodb package
+		Connects, exposes database and client.
+		Wrap DB/client in our objects to abstract db implementation???
+		Rest
+			Meant for editing records
+		Metadata
+			Meant for performing customizations
+	Trigger? (workflow in CRM)
+	Logger
+
+controllers
+	Entity controller
+		Uses Rest service?
+	Metadata contrller?
+		Uses Metadata service?
+		Forms
+		Fields
+		Relationships
+
+components/views
+	nav
+		base nav
+		entity nav
+	form nav
+	form renderer
+
+Baseline
+	crud entity
+	crud field
+	crud relationship
+	crud form (list of fields w/ order)
+	custom html/script partials that standalone
+	edit nav
+	triggers
+	basic REST service for clients
+	basic auth (not HTTP basic LUL)
+

@@ -1,8 +1,15 @@
 import { Record } from '../../record/record';
 
 export enum RelationshipType {
-	oneToMany = 1,
-	manyToMany = 2
+	oneToOne = 1,
+	oneToMany = 2,
+	manyToMany = 3
+}
+
+export enum EmbeddedType {
+	notEmbedded = 1,
+	embeddedList = 2,
+	embeddedDictionary = 3
 }
 
 export class Relationship extends Record {
@@ -47,11 +54,11 @@ export class Relationship extends Record {
 		this.setValue(Relationship.TYPE_ATTRIBUTE, value);
 	}
 
-	public get embedded(): boolean {
+	public get embedded(): number {
 		return this.getValue(Relationship.EMBEDDED_ATTRIBUTE);
 	}
 
-	public set embedded(value: boolean) {
+	public set embedded(value: number) {
 		this.setValue(Relationship.EMBEDDED_ATTRIBUTE, value);
 	}
 
@@ -78,7 +85,7 @@ export class Relationship extends Record {
 		fromAttribute: string = null,
 		toAttribute: string = null,
 		type: RelationshipType = null,
-		embedded: boolean = false
+		embedded: EmbeddedType = null,
 	) {
 		super(Relationship.COLLECTION_NAME);
 

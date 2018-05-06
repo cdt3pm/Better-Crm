@@ -22,23 +22,13 @@ export class Attribute extends Record {
 		this.setValue(Attribute.DISPLAY_ATTRIBUTE, value);
 	}
 
-	public get collectionId(): any {
-		return this.getValue(Attribute.COLLECTION_ID_ATTRIBUTE);
-	}
-
-	public set collectionId(value: any) {
-		this.setValue(Attribute.COLLECTION_ID_ATTRIBUTE, value);
-	}
-
 	constructor(
 		name: string = null,
 		displayName: string = null,
-		collectionId: any = null
 	) {
 		super(Attribute.COLLECTION_NAME);
 
 		this.name = name;
 		this.displayName = displayName;
-		this.collectionId = collectionId;
 	}
 }
