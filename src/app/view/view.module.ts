@@ -9,9 +9,7 @@ import { FormComponent } from './form/form.component';
   imports: [
     CommonModule
   ],
-  providers: [
-		{ provide: ApiService, useFactory: ApiService.get }
-  ],
+  providers: [ ApiService ],
   declarations: [CardComponent, GridComponent, FormComponent]
 })
 export class ViewModule { }

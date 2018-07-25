@@ -1,8 +1,9 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Router, ActivatedRoute, ParamMap } from '@angular/router';
-import { Record, RecordReference, ValidationResult } from '../../record/record';
+import { Record, RecordReference, ValidationResult, ValidationError } from '../../../common/record/record';
 import { ApiService } from '../../api/api.service';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { switchMap, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-form',
@@ -17,11 +18,12 @@ export class FormComponent implements OnInit {
 	public record: Observable<Record>;
 	public validationState: ValidationResult;
 
-  constructor(protected _service: ApiService, protected _route: ActivatedRoute) { }
+	constructor(protected _service: ApiService, protected _route: ActivatedRoute) { }
 
-  ngOnInit() {
+	ngOnInit() {
+
 		if (!this.reference || !this.reference.id) {
-			this.record = this._route.paramMap.switchMap(paramMap => {
+			this.record = this._route.paramMap.pipe(switchMap(paramMap => {
 				if (!paramMap.has("collection")) {
 					throw new Error("No collection provided to this form");
 				}
@@ -31,13 +33,13 @@ export class FormComponent implements OnInit {
 						new RecordReference(paramMap.get("collection"));
 				}
 
-				return this._service.retrieve(this.reference).get().take(1);
-			});
+				return this._service.retrieve(this.reference).pipe(take(1), switchMap(result => result.data));
+			}));
 		}
 		else if (this.reference) {
-			this.record = Observable.of(new Record(this.reference.collection));
+			this.record = of(new Record(this.reference.collection));
 		}
-  }
+	}
 
 	public fieldChanged(record: Record, attribute: string, changeEvent: Event) {
 		record.setValue(attribute, (<any>changeEvent.target).value);
@@ -70,6 +72,6 @@ export class FormComponent implements OnInit {
 
 	// Maybe should be protected?
 	public showGlobalError(error: Error | string) {
-		this.validationState.errors.push((error instanceof Error) ? error.message : error);
+		this.validationState.errors.push(new ValidationError((error instanceof Error) ? error.message : error));
 	}
 }

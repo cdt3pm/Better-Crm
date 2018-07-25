@@ -1,0 +1,19 @@
+
+Date: 2018-07-14T16:45:18.531Z
+Hash: 766a39e9328c9b4149ae
+Time: 2977ms
+chunk {main} main.js, main.js.map (main) 624 bytes [initial] [rendered]
+chunk {polyfills} polyfills.js, polyfills.js.map (polyfills) 679 bytes [initial] [rendered]
+chunk {runtime} runtime.js, runtime.js.map (runtime) 5.22 kB [entry] [rendered]
+chunk {styles} styles.js, styles.js.map (styles) 15.6 kB [initial] [rendered]
+
+ERROR in src/app/view/form/form.component.ts(75,36): error TS2345: Argument of type 'string' is not assignable to parameter of type 'ValidationError'.
+src/app/view/grid/grid.component.ts(3,24): error TS2307: Cannot find module '../../record/record'.
+src/app/view/grid/grid.component.ts(4,40): error TS2307: Cannot find module '../../backend/backend.service'.
+src/app/view/grid/grid.component.ts(77,61): error TS2339: Property 'backend' does not exist on type 'ApiService'.
+src/app/view/view.module.ts(13,49): error TS2339: Property 'get' does not exist on type 'typeof ApiService'.
+src/common/metadata/collection/collection.ts(74,5): error TS2554: Expected 1 arguments, but got 2.
+src/common/metadata/collection/collection.ts(74,21): error TS2351: Cannot use 'new' with an expression whose type lacks a call or construct signature.
+src/server/routes/api.ts(1,27): error TS2307: Cannot find module '../../api/api.service'.
+src/server/routes/api.ts(5,17): error TS2304: Cannot find name 'ApiService'.
+

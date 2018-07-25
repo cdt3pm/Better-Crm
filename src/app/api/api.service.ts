@@ -1,64 +1,63 @@
-import { BackendService, CreateResult, CrudResult, Cursor } from '../backend/backend.service';
-import { MongoService } from '../backend/mongo.service';
-import { Record, RecordReference } from '../record/record';
-import { Observable } from 'rxjs';
-import * as express from 'express';
+import { Injectable } from '@angular/core';
+import { Location } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { Record, RecordReference } from '../../common/record/record' ;
+import { ServiceResult } from '../../common/metadata/service_result' ;
 
+@Injectable()
 export class ApiService {
-	public get backend() {
-		return this._backend;
+
+	public get url(): string {
+		return this._locationService.normalize("/api");
 	}
 
-	public static get(): ApiService {
-		// TODO: get backend service dynamically
-		return new ApiService(new MongoService());
+	constructor(private _locationService: Location, private _httpClient: HttpClient) { }
+
+	public create(record: Record) {
+		this.request("create", record.attributes, record.collectionName);
 	}
 
-	constructor(private _backend: BackendService) {}
+	public retrieve(recordOrReference: Record | RecordReference): Observable<ServiceResult> {
+		let collection: string;
+		let id: string;
+		let params: {} = null;
 
-	public handleExpressRequest(req: express.Request, res: express.Response) {
-		const params = req.params;
-		const body = req.body;
-		const collection: string = params.collection
-		let record: Record | RecordReference;
-		let observable: Observable<any>;
+		if (recordOrReference instanceof Record) {
+			const record = <Record>recordOrReference;
 
-		if (!collection) {
-			throw new Error("Collection is null");
-		}
-
-		if (!body && params.id) {
-			record = new RecordReference(collection, params.id);
+			collection = record.collectionName;
+			id = record.id;
+			params = recordOrReference;
 		}
 		else {
-			record = new Record(collection, req.body);
+			const reference = <RecordReference>recordOrReference;
 
-			if (params.id) {
-				record.id = params.id;
-			}
+			collection = reference.collection;
+			id = reference.id;
 		}
 
-		switch (params.method) {
-			case 'create':
-				observable = this.create(<Record>record);
-			case 'update':
-				observable = this.update(<Record>record);
-			case 'retrieve':
-				observable = this.retrieve(record);
+		return this.request("retrieve", params, collection, id);
+	}
+
+	public update(record: Record): Observable<ServiceResult> {
+		return this.request("update", record, record.collectionName, record.id);
+	}
+
+	public request(name: string, params: {} = null, collection: string = null, id: string = null): Observable<ServiceResult> {
+		let url = this.url;
+		let observable: Observable<any>;
+
+		if (collection) {
+			url += "/" + collection;
+
+			if (id)
+				url += "/" + id;
 		}
 
-		observable.subscribe(res.json, res.json, res.end);
-	}
-
-	public create(record: Record): Observable<CreateResult> {
-		return Observable.fromPromise(this.backend.create(record));
-	}
-
-	public retrieve(recordOrReference: Record | RecordReference): Observable<Record> {
-		return this.backend.retrieve(recordOrReference).get();
-	}
-
-	public update(record: Record): Observable<CrudResult> {
-		return Observable.fromPromise(this.backend.update(record);
+		//TODO: error handling
+		return params ? this._httpClient.get<ServiceResult>(url) : this._httpClient.post<ServiceResult>(url, params);
 	}
 }
+

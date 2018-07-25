@@ -71,9 +71,13 @@ export class Record {
 	}
 }
 
+export class ValidationError {
+	constructor(public message: string, public attribute: string = null) { }
+}
+
 export class ValidationResult {
-	public errors: string[] = [];
-	public attributeErrors: { [attribute: string]: string[] } = {};
+	public errors: ValidationError[] = [];
+	public attributeErrors: { [attribute: string]: ValidationError[] } = {};
 
 	public get valid(): boolean {
 		return (this.errors.length || Object.keys(this.attributeErrors).length) ? true : false;
@@ -81,12 +85,16 @@ export class ValidationResult {
 
 	constructor() { }
 
-	public addAttributeError(attribute: string, error: string) {
-		if (!this.attributeErrors.hasOwnProperty(attribute)) {
-			this.attributeErrors[attribute] = [error];
-		}
-		else {
-			this.attributeErrors[attribute].push(error);
+	public addError(error: ValidationError) {
+		this.errors.push(error);
+
+		if (error.attribute) {
+			if (!this.attributeErrors.hasOwnProperty(error.attribute)) {
+				this.attributeErrors[error.attribute] = [error];
+			}
+			else {
+				this.attributeErrors[error.attribute].push(error);
+			}
 		}
 	}
 }

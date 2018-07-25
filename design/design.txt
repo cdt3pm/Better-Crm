@@ -37,3 +37,15 @@ Baseline
 	basic REST service for clients
 	basic auth (not HTTP basic LUL)
 
+Express
+	Express handles all API calls (all backend code)?
+	Angular modules/components use API service
+	/api/entity/action
+	
+Service
+	Name: string
+	Collection Reference (optional): recordreference
+	Scope: Enum (record | collection)
+	Some way to get the function....
+		For now just eval a string field???
+	

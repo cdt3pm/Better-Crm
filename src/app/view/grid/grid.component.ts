@@ -1,9 +1,10 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Router, ActivatedRoute, ParamMap } from '@angular/router';
-import { Record } from '../../record/record';
-import { BackendService, Cursor } from '../../backend/backend.service';
+import { Record } from '../../../common/record/record';
+import { ServiceResult } from '../../../common/metadata/service_result';
 import { ApiService } from '../../api/api.service';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { switchMap, map, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-grid',
@@ -21,7 +22,6 @@ export class GridComponent implements OnInit {
 	@Input()
 	public columns: Column[];
 	public query: Observable<Record>;
-	protected _cursor: Observable<Cursor>;
 	@Input()
 	public initialPage: number = 1;
 	private _currentPage: number;
@@ -61,19 +61,22 @@ export class GridComponent implements OnInit {
 		}
 	}
 
+	public details(record: Record) {
+
+	}
+
   ngOnInit() {
 		if (!this.query) {
-			this.query = this._route.paramMap.switchMap(paramMap => {
+			this.query = this._route.paramMap.pipe(switchMap(paramMap => {
 				if (paramMap.has("collection")) {
-					return Observable.of(new Record(paramMap.get("collection")));
+					return of(new Record(paramMap.get("collection")));
 				}
 				else {
 					throw new Error("couldn't find collection name in route");
 				}
-			});
+			}));
 		}
 
-		this._cursor = this.query.map(query => this._service.backend.retrieve(query));
 		this.currentPage = this.initialPage;
 	}
 
@@ -82,13 +85,12 @@ export class GridComponent implements OnInit {
 		page: number = this.currentPage,
 		pageSize: number = this.pageSize
 	): Observable<Record> {
-		return this._cursor.switchMap(cursor => {
-			if (reset) {
-				cursor.reset().skip((page - 1) * pageSize);
-			}
-
-			return cursor.limit(pageSize).get();
-		});
+		// TODO: implement some kind of cursor on API service
+		return this.query.pipe(
+			switchMap(query => this._service.retrieve(query)),
+			map(result => <Record>result.data),
+			take(pageSize)
+		);
 	}
 }
 

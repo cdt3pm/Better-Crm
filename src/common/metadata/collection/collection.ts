@@ -1,4 +1,4 @@
-import { Record, ValidationResult } from '../../record/record';
+import { Record, ValidationResult, ValidationError } from '../../record/record';
 import { Attribute } from '../attribute/attribute';
 import { Relationship } from '../relationship/relationship';
 
@@ -71,7 +71,7 @@ export class Collection extends Record {
 
 		if (this.exists) {
 			if (this.changeRecord.hasOwnProperty(Collection.NAME_ATTRIBUTE)) {
-				result.addAttributeError(Collection.NAME_ATTRIBUTE, "This attribute cannot be changed once the record has been created");
+				result.addError(new ValidationError("This attribute cannot be changed once the record has been created", Collection.NAME_ATTRIBUTE));
 			}
 		}
 		else {

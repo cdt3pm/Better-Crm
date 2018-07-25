@@ -1,5 +1,6 @@
 import { Record, RecordReference } from "../../record/record";
 
+// TODO: Attribute types
 export class Attribute extends Record {
 	public static readonly COLLECTION_NAME = "attribute";
 	public static readonly NAME_ATTRIBUTE = "name";
@@ -32,3 +33,4 @@ export class Attribute extends Record {
 		this.displayName = displayName;
 	}
 }
+

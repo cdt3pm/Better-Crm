@@ -2,10 +2,9 @@ import { Injectable } from '@angular/core';
 import { Observable, Observer } from 'rxjs';
 import { Readable } from 'stream';
 import { BackendService, Cursor, CrudResult, DbAlterResult, CreateResult } from './backend.service';
-import { Record, RecordReference } from '../record/record';
+import { Record, RecordReference } from '../../common/record/record';
 import { MongoClient, Db } from 'mongodb';
 
-@Injectable()
 export class MongoService implements BackendService {
 	private static getBatchAttributes(records: Record[]): any[] {
 		let collectionName: string = null;
@@ -29,17 +28,26 @@ export class MongoService implements BackendService {
 
 	private _db: Db;
 
-	constructor() {
+	constructor() { }
+
+	public async init(): Promise<boolean> {
 		// Connection URL
 		// TODO: read from config file
-		const url = 'mongodb://localhost:27017/myproject';
+		const url = 'mongodb://localhost:27017';
 		// Database Name
 		// TODO: read from config file
-		const dbName = 'myproject';
+		const dbName = 'BetterCrm';
 
-		MongoClient.connect(url)
-			.then(db => { this._db = db })
-			.catch(err => { console.log(err.stack); });
+		return MongoClient.connect(url)
+			.then(db => {
+				console.log("Connected to Mongo");
+				this._db = db;
+				return true;
+			})
+		.catch(err => {
+			console.log(err.stack);
+			return false;
+		});
 	}
 
 	public create(recordOrRecords: Record | Record[]): Promise<CreateResult> {

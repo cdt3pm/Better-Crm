@@ -7,7 +7,7 @@ const APP_ROUTES: Routes = [
 	{ path: '', redirectTo: '/customization' },
 	{ path: 'customization', component: MetadataComponent },
 	{ path: ':collection', component: GridComponent },
-	{ path: ':collection/new', component: FormComponent }
+	{ path: ':collection/new', component: FormComponent },
 	{ path: ':collection/:id', component: FormComponent }
 ];
 

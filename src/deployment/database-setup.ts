@@ -1,44 +1,45 @@
-import { BackendService, DbAlterResult, CreateResult } from "../app/backend/backend.service";
-import { MongoService } from "../app/backend/mongo.service";
-import { Collection } from "../app/metadata/collection/collection";
-import { Attribute } from "../app/metadata/attribute/attribute";
-import { Relationship, RelationshipType, EmbeddedType } from "../app/metadata/relationship/relationship";
-import { Record } from '../app/record/record';
+import { BackendService, DbAlterResult, CreateResult } from "../api/backend/backend.service";
+import { MongoService } from "../api/backend/mongo.service";
+import { Collection } from "../common/metadata/collection/collection";
+import { Attribute } from "../common/metadata/attribute/attribute";
+import { Service, Scope } from "../common/metadata/service";
+import { Relationship, RelationshipType, EmbeddedType } from "../common/metadata/relationship/relationship";
+import { Record } from '../common/record/record';
 import { Observable } from "rxjs";
+import { single, map, catchError } from 'rxjs/operators';
 
-const db: BackendService = new MongoService(); // TODO: call method that gets a BackendService 
+const db: MongoService = new MongoService(); // TODO: call method that gets a BackendService 
 let tableNames: string[] = null;
 
-async function conditionallyCreateTable(name: string): Promise<DbAlterResult> {
-	if (tableNames.indexOf(name) < 0) {
-		return db.createTable(name);
-	}
-	else {
-		return Promise.resolve(<DbAlterResult>{ success: true });
-	}
-}
+const conditionallyCreateTable = (name: string): Promise<DbAlterResult> =>
+	(tableNames.indexOf(name) < 0) ? db.createTable(name) : Promise.resolve(<DbAlterResult>{ success: true });
 
-async function conditionallyCreateRecord(record: Record): any {
-	return await db.retrieve(record).get().single()
-		// record doesn't exist.
-		.catch(err => db.create(record))
+async function conditionallyCreateRecord(record: Record): Promise<any> {
+	return await db.retrieve(record).get().pipe(
+		single(),
+		catchError(err => db.create(record)),
 		// map record to result.
-		.map(recordOrResult => {
-			if(recordOrResult instanceof Record) {
-				return (<Record>recordOrResult).id
-			}
-			else {
-				return (<CreateResult>recordOrResult).newId;
-			}
-		}).toPromise();
+		map(recordOrResult => recordOrResult instanceof Record ?
+			(<Record>recordOrResult).id :
+			(<CreateResult>recordOrResult).newId
+		)
+	);
 }
 
 (async () => {
+	console.log("initing db.");
+
+	if (!await db.init()) {
+		console.log("init failed. exiting");
+		return;
+	}
+
 	tableNames = await db.tableNames();
 
 	// Tables
 	conditionallyCreateTable(Collection.COLLECTION_NAME);
 	conditionallyCreateTable(Relationship.COLLECTION_NAME);
+	conditionallyCreateTable(Service.COLLECTION_NAME);
 
 	// Attribute Maps (to be embedded in collections)
 	const collectionAttributes: { [name: string]: Attribute } = {};
@@ -46,9 +47,11 @@ async function conditionallyCreateRecord(record: Record): any {
 	collectionAttributes[Collection.DISPLAY_ATTRIBUTE] = new Attribute(Collection.DISPLAY_ATTRIBUTE, "Display");
 	collectionAttributes[Collection.DISPLAY_PLURAL_ATTRIBUTE] = new Attribute(Collection.DISPLAY_PLURAL_ATTRIBUTE, "Display Plural");
 	collectionAttributes[Collection.IS_EMBEDDED_ATTRIBUTE] = new Attribute(Collection.IS_EMBEDDED_ATTRIBUTE, "Is Embedded");
+
 	const attributeAttributes: { [name: string]: Attribute } = {}; 
 	attributeAttributes[Attribute.NAME_ATTRIBUTE] = new Attribute(Attribute.NAME_ATTRIBUTE, "Name");
 	attributeAttributes[Attribute.DISPLAY_ATTRIBUTE] = new Attribute(Attribute.DISPLAY_ATTRIBUTE, "Display Name");
+
 	const relationshipAttributes: { [name: string]: Attribute } = {};
 	relationshipAttributes[Relationship.NAME_ATTRIBUTE] = new Attribute(Relationship.NAME_ATTRIBUTE, "Name");
 	relationshipAttributes[Relationship.FROM_COLLECTION_ATTRIBUTE] = new Attribute(Relationship.FROM_COLLECTION_ATTRIBUTE, "Collection From");
@@ -57,6 +60,11 @@ async function conditionallyCreateRecord(record: Record): any {
 	relationshipAttributes[Relationship.TO_ATTRIBUTE_ATTRIBUTE] = new Attribute(Relationship.TO_ATTRIBUTE_ATTRIBUTE, "Attribute To");
 	relationshipAttributes[Relationship.TYPE_ATTRIBUTE] = new Attribute(Relationship.TYPE_ATTRIBUTE, "Type");
 	relationshipAttributes[Relationship.EMBEDDED_ATTRIBUTE] = new Attribute(Relationship.EMBEDDED_ATTRIBUTE, "Embedded");
+
+	const serviceAttributes: { [name: string]: Attribute } = {};
+	serviceAttributes[Service.NAME_ATTRIBUTE_NAME] = new Attribute(Service.NAME_ATTRIBUTE_NAME, "Name");
+	serviceAttributes[Service.COLLECTION_ATTRIBUTE_NAME] = new Attribute(Service.COLLECTION_ATTRIBUTE_NAME, "Collection");
+	serviceAttributes[Service.SCOPE_ATTRIBUTE_NAME] = new Attribute(Service.SCOPE_ATTRIBUTE_NAME, "Scope");
 
 	// Collection Records
 	const collectionId = (await conditionallyCreateRecord(
@@ -67,6 +75,9 @@ async function conditionallyCreateRecord(record: Record): any {
 	)).newId;
 	const relationshipId = (await conditionallyCreateRecord(
 		new Collection(Relationship.COLLECTION_NAME, "Relationship", "Relationships", relationshipAttributes)
+	)).newId;
+	const serviceId = (await conditionallyCreateRecord(
+		new Collection(Service.COLLECTION_NAME, "Service", "Services", serviceAttributes)
 	)).newId;
 	
 	// Relationship Records
@@ -97,5 +108,29 @@ async function conditionallyCreateRecord(record: Record): any {
 		Relationship.TO_ATTRIBUTE_ATTRIBUTE,
 		RelationshipType.oneToMany,
 		EmbeddedType.notEmbedded
+	));
+	conditionallyCreateRecord(new Service(
+		"create",
+		"all",
+		"function (api, params, id) { return api.create(params); }",
+		Scope.RECORD
+	));
+	conditionallyCreateRecord(new Service(
+		"delete",
+		"all",
+		"function (api, params, id) { return api.delete(params); }",
+		Scope.RECORD
+	));
+	conditionallyCreateRecord(new Service(
+		"update",
+		"all",
+		"function (api, params, id) { return api.update(params); }",
+		Scope.RECORD
+	));
+	conditionallyCreateRecord(new Service(
+		"retrieve",
+		"all",
+		"function (api, params, id) { return api.retrieve(params); }",
+		Scope.RECORD
 	));
 })();

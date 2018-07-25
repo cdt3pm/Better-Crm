@@ -14,9 +14,7 @@ import { APP_ROUTER } from './app.routes';
     BrowserModule, MetadataModule, APP_ROUTER
   ],
   // TODO: Get the value of the database provider from elsewhere (config file). Don't use "useClass" in the future.
-  providers: [
-    { provide: ApiService, useFactory: ApiService.get }
-  ],
+  providers: [ApiService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

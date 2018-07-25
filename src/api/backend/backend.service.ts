@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Record, RecordReference } from '../record/record';
+import { Record, RecordReference } from '../../common/record/record';
 
 export interface BackendService {
 	// CRUD

@@ -3,7 +3,7 @@
 		<th *ngFor="let column of columns">{{column.displayName}}"</th>
 	</tr>
 	<tbody *ngIf="records | async as rs">
-		<tr *ngFor="let record of rs">
+		<tr *ngFor="let record of rs" (click)="details(record)">
 			<td *ngFor="let column of columns" *ngIf="record.attributes[column.name]">record.attributes[column.name]</td>
 		</tr>
 	</tbody>
